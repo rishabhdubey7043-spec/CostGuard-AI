@@ -104,12 +104,17 @@ export function Scorecard({ audit, onFix }: { audit: AuditResult; onFix: () => v
               </tbody>
             </table>
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Parsed entirely in your browser. Nothing left this device.{" "}
-            <button onClick={onFix} className="text-primary underline underline-offset-4">
-              Fix this waste
-            </button>
-          </p>
+          <div className="mt-3 space-y-1.5">
+            <p className="text-xs font-medium text-foreground">
+              Your billing data stays in your browser.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              No API keys required &bull; No server upload &bull; Client-side analysis. Parsed entirely in\n              your browser — nothing left this device.{" "}
+              <button onClick={onFix} className="text-primary underline underline-offset-4">
+                Fix this waste
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </section>

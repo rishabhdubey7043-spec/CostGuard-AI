@@ -1,28 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useRef, useState } from "react";
 import Papa from "papaparse";
-import { ShieldCheck, Github, UploadCloud, Zap, Lock, Gauge, ArrowRight } from "lucide-react";
+import { ShieldCheck, Github, UploadCloud, Zap, Lock, Gauge, ArrowRight, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/costguard/Logo";
 import { Scorecard } from "@/components/costguard/Scorecard";
 import { LeadModal } from "@/components/costguard/LeadModal";
+import { WaitlistModal } from "@/components/costguard/WaitlistModal";
 import { buildAudit, rowsFromCsv, SAMPLE_ROWS, type AuditResult } from "@/lib/audit";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CostGuard AI — Audit Your OpenAI Bill in 10 Seconds" },
+      { title: "CostGuard AI — LLM & AI API Cost Auditor | Audit Your Bill in 10 Seconds" },
       {
         name: "description",
         content:
-          "Drop your OpenAI usage CSV and get an instant, private waste scorecard: wasted spend, duplicate prompts and model overspending. 100% client-side.",
+          "Audit your OpenAI, Claude, Gemini, DeepSeek & custom LLM API bills in 10 seconds. 100% client-side, zero API keys, sub-10ms browser parsing. See wasted spend, duplicate prompts and model overspending.",
       },
-      { property: "og:title", content: "CostGuard AI — Audit Your OpenAI Bill in 10 Seconds" },
+      { property: "og:title", content: "CostGuard AI — LLM & AI API Cost Auditor" },
       {
         property: "og:description",
         content:
-          "Instant client-side LLM cost audit. See wasted tokens, model overspend and savings without uploading anything.",
+          "Instant client-side LLM & AI API cost audit for OpenAI, Claude, Gemini, DeepSeek & custom models. See wasted tokens, model overspend and savings without uploading anything.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -36,6 +37,7 @@ function Index() {
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -89,9 +91,9 @@ function Index() {
               variant="outline"
               size="sm"
               className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary"
-              onClick={() => setModalOpen(true)}
+              onClick={() => setWaitlistOpen(true)}
             >
-              Launch Proxy Interceptor
+              Join Proxy Beta
             </Button>
           </nav>
         </div>
@@ -100,18 +102,19 @@ function Index() {
       <section className="bg-hero-glow">
         <div className="mx-auto max-w-4xl px-5 pb-14 pt-16 text-center sm:pt-24">
           <h1 className="text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-6xl">
-            Audit Your OpenAI Bill in 10 Seconds.{" "}
+            Audit Your LLM &amp; AI API Bill in 10 Seconds.{" "}
             <span className="text-gradient-emerald">See How Much You Wasted Last Month.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
-            100% client-side &amp; private. Drag and drop your OpenAI billing CSV to uncover hidden token
-            waste, duplicate prompts, and model overspending.
+            100% client-side &amp; private. Works with OpenAI, Claude, Gemini, DeepSeek &amp; custom LLM
+            API bills. Drag and drop your usage CSV to uncover hidden token waste, duplicate prompts, and
+            model overspending.
           </p>
           <ul className="mt-7 flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm">
             {[
               { icon: Lock, label: "No API Keys Required" },
               { icon: ShieldCheck, label: "Zero Server Uploads" },
-              { icon: Gauge, label: "Sub-10ms Privacy Parsing" },
+              { icon: Gauge, label: "Sub-10ms Browser Parsing" },
             ].map(({ icon: Icon, label }) => (
               <li
                 key={label}
@@ -150,7 +153,7 @@ function Index() {
           <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl border border-primary/30 bg-primary/10">
             <UploadCloud className="h-7 w-7 text-primary" aria-hidden />
           </span>
-          <p className="text-lg font-semibold tracking-tight">Drag &amp; Drop Your OpenAI Usage CSV Here</p>
+          <p className="text-lg font-semibold tracking-tight">Drag &amp; Drop Your LLM / AI API Usage CSV Here</p>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Or click to browse from your device (Max 25MB)
           </p>
@@ -185,25 +188,47 @@ function Index() {
             Don&apos;t have a CSV? Click to test with sample $5,000 usage data
           </button>
         </div>
+
+        <div className="mx-auto mt-6 max-w-2xl rounded-xl border border-border/70 bg-card/50 px-5 py-4 text-center">
+          <p className="text-sm font-medium text-foreground">Your billing data stays in your browser.</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            No API keys required &bull; No server upload &bull; Client-side analysis
+          </p>
+        </div>
       </section>
 
       <div ref={resultsRef}>
-        {audit && <Scorecard audit={audit} onFix={() => setModalOpen(true)} />}
+        {audit && <Scorecard audit={audit} onFix={() => setWaitlistOpen(true)} />}
       </div>
+
+      <section className="mx-auto w-full max-w-4xl px-5 py-12">
+        <div className="rounded-2xl border border-border/70 bg-card/50 p-8 text-center sm:p-10">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-primary/30 bg-primary/10">
+            <Users className="h-6 w-6 text-primary" aria-hidden />
+          </span>
+          <h2 className="mt-5 text-2xl font-bold tracking-tight sm:text-3xl">
+            Built for teams spending money on AI
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
+            For AI SaaS companies, AI agents &amp; applications, startups using OpenAI APIs, and teams with
+            growing LLM spend.
+          </p>
+        </div>
+      </section>
 
       <section className="mx-auto w-full max-w-6xl px-5 py-16">
         <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-card p-8 text-center shadow-glow sm:p-14">
           <div className="pointer-events-none absolute inset-0 bg-hero-glow" aria-hidden />
           <div className="relative">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              <Zap className="h-3.5 w-3.5" aria-hidden /> 1-line integration
+              <Zap className="h-3.5 w-3.5" aria-hidden /> Coming Soon
             </span>
             <h2 className="mt-5 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-              Fix This Waste With 1-Line Proxy Interceptor
+              1-Line Proxy Interceptor — Coming Soon
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-pretty text-muted-foreground">
-              Swap your OPENAI_BASE_URL to CostGuard Proxy. Save up to 60% automatically with zero code
-              changes.
+              Swap your OPENAI_BASE_URL to CostGuard Proxy. Reduce unnecessary AI spend automatically —
+              with zero code changes.
             </p>
             <pre className="mx-auto mt-6 w-fit max-w-full overflow-x-auto rounded-lg border border-border bg-background px-4 py-3 text-left font-mono text-xs text-muted-foreground sm:text-sm">
               <code>OPENAI_BASE_URL=https://proxy.costguard.ai/v1</code>
@@ -211,9 +236,9 @@ function Index() {
             <Button
               size="lg"
               className="mt-7 font-semibold"
-              onClick={() => setModalOpen(true)}
+              onClick={() => setWaitlistOpen(true)}
             >
-              Get Early Access &amp; Save My Bill
+              Join Proxy Beta
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
           </div>
@@ -230,6 +255,7 @@ function Index() {
       </footer>
 
       <LeadModal open={modalOpen} onOpenChange={setModalOpen} />
+      <WaitlistModal open={waitlistOpen} onOpenChange={setWaitlistOpen} />
     </main>
   );
 }
