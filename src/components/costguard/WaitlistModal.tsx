@@ -18,8 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Check, Loader2, ShieldCheck } from "lucide-react";
-
-const WAITLIST_KEY = "costguard:proxy-waitlist";
+import { supabase } from "@/integrations/supabase/client";
 
 const SPEND_BANDS = ["<$1K", "$1K–$5K", "$5K–$25K", "$25K+"] as const;
 const INTERESTS = [
@@ -29,14 +28,6 @@ const INTERESTS = [
   "Spike Protection",
   "Cost Analytics",
 ] as const;
-
-type WaitlistEntry = {
-  email: string;
-  spend: string;
-  interests: string[];
-  source: string;
-  submittedAt: string;
-};
 
 export function WaitlistModal({
   open,
@@ -78,24 +69,20 @@ export function WaitlistModal({
     if (!formValid) return;
     setSubmitting(true);
     setError(null);
-    const entry: WaitlistEntry = {
-      email: email.trim(),
-      spend,
-      interests,
-      source: "proxy-beta-waitlist",
-      submittedAt: new Date().toISOString(),
-    };
     try {
-      let entries: WaitlistEntry[] = [];
-      try {
-        entries = JSON.parse(localStorage.getItem(WAITLIST_KEY) ?? "[]") as WaitlistEntry[];
-      } catch {
-        entries = [];
+      const role = `proxy-beta | spend:${spend} | interests:${interests.join(", ")}`;
+      const { error: insertError } = await supabase
+        .from("waitlist")
+        .insert({ email: email.trim(), role });
+      if (insertError) {
+        if (insertError.code === "23505") {
+          setError("You're already on the waitlist with that email!");
+        } else {
+          setError("We couldn't save that just now. Please try again in a moment.");
+        }
+        setSubmitting(false);
+        return;
       }
-      if (!Array.isArray(entries)) entries = [];
-      entries.push(entry);
-      localStorage.setItem(WAITLIST_KEY, JSON.stringify(entries));
-      await new Promise((r) => setTimeout(r, 600));
       setDone(true);
     } catch {
       setError("We couldn't save that just now. Please try again in a moment.");
